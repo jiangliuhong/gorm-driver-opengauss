@@ -137,7 +137,6 @@ func (dialector Dialector) Initialize(db *gorm.DB) (err error) {
 	//}
 	if dialector.DSN == "" {
 		dialector.DSN = configTODSN(dialector.Config)
-		fmt.Println(dialector.DSN)
 	}
 	var config *pq.Config
 	config, err = pq.ParseConfig(dialector.DSN)
