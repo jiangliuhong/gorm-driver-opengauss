@@ -1,17 +1,17 @@
 package postgres
 
 import (
-	"github.com/jackc/pgx/v5/pgconn"
+	pq "gitee.com/opengauss/openGauss-connector-go-pq"
 	"gorm.io/gorm"
 )
 
 var errCodes = map[string]string{
-	"uniqueConstraint": "23505",
+	"unique_violation": "23505",
 }
 
 func (dialector Dialector) Translate(err error) error {
-	if pgErr, ok := err.(*pgconn.PgError); ok {
-		if pgErr.Code == errCodes["uniqueConstraint"] {
+	if pgErr, ok := err.(*pq.Error); ok {
+		if pgErr.Code.String() == errCodes["unique_violation"] {
 			return gorm.ErrDuplicatedKey
 		}
 	}
