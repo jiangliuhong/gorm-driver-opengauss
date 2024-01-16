@@ -4,7 +4,7 @@
 
 ```go
 import (
-  og "github.com/stitchcula/OpenGauss"
+  og "github.com/jiangliuhong/gorm-driver-opengauss"
   "gorm.io/gorm"
 )
 

@@ -79,8 +79,9 @@ func (m Migrator) HasIndex(value interface{}, name string) bool {
 			name = idx.Name
 		}
 		currentSchema, curTable := m.CurrentSchema(stmt, stmt.Table)
+		indexName := m.DB.NamingStrategy.IndexName(curTable.(string), name)
 		return m.DB.Raw(
-			"SELECT count(*) FROM pg_indexes WHERE tablename = ? AND indexname = ? AND schemaname = ?", curTable, name, currentSchema,
+			"SELECT count(*) FROM pg_indexes WHERE tablename = ? AND indexname = ? AND schemaname = ?", curTable, indexName, currentSchema,
 		).Scan(&count).Error
 	})
 
