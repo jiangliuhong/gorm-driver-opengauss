@@ -196,7 +196,7 @@ func (m Migrator) AddColumn(value interface{}, field string) error {
 	if err := m.Migrator.AddColumn(value, field); err != nil {
 		return err
 	}
-	m.resetPreparedStmts()
+	//m.resetPreparedStmts()
 
 	return m.RunWithValue(value, func(stmt *gorm.Statement) error {
 		if field := stmt.Schema.LookUpField(field); field != nil {
@@ -370,7 +370,7 @@ func (m Migrator) AlterColumn(value interface{}, field string) error {
 	if err != nil {
 		return err
 	}
-	m.resetPreparedStmts()
+	//m.resetPreparedStmts()
 	return nil
 }
 
@@ -678,38 +678,38 @@ func (m Migrator) getColumnSequenceName(tx *gorm.DB, stmt *gorm.Statement, field
 	return
 }
 
-func (m Migrator) GetIndexes(value interface{}) ([]gorm.Index, error) {
-	indexes := make([]gorm.Index, 0)
-
-	err := m.RunWithValue(value, func(stmt *gorm.Statement) error {
-		result := make([]*Index, 0)
-		scanErr := m.DB.Raw(indexSql, stmt.Table).Scan(&result).Error
-		if scanErr != nil {
-			return scanErr
-		}
-		indexMap := groupByIndexName(result)
-		for _, idx := range indexMap {
-			tempIdx := &migrator.Index{
-				TableName: idx[0].TableName,
-				NameValue: idx[0].IndexName,
-				PrimaryKeyValue: sql.NullBool{
-					Bool:  idx[0].Primary,
-					Valid: true,
-				},
-				UniqueValue: sql.NullBool{
-					Bool:  idx[0].NonUnique,
-					Valid: true,
-				},
-			}
-			for _, x := range idx {
-				tempIdx.ColumnList = append(tempIdx.ColumnList, x.ColumnName)
-			}
-			indexes = append(indexes, tempIdx)
-		}
-		return nil
-	})
-	return indexes, err
-}
+//func (m Migrator) GetIndexes(value interface{}) ([]gorm.Index, error) {
+//	indexes := make([]gorm.Index, 0)
+//
+//	err := m.RunWithValue(value, func(stmt *gorm.Statement) error {
+//		result := make([]*Index, 0)
+//		scanErr := m.DB.Raw(indexSql, stmt.Table).Scan(&result).Error
+//		if scanErr != nil {
+//			return scanErr
+//		}
+//		indexMap := groupByIndexName(result)
+//		for _, idx := range indexMap {
+//			tempIdx := &migrator.dm={
+//				TableName: idx[0].TableName,
+//				NameValue: idx[0].IndexName,
+//				PrimaryKeyValue: sql.NullBool{
+//					Bool:  idx[0].Primary,
+//					Valid: true,
+//				},
+//				UniqueValue: sql.NullBool{
+//					Bool:  idx[0].NonUnique,
+//					Valid: true,
+//				},
+//			}
+//			for _, x := range idx {
+//				tempIdx.ColumnList = append(tempIdx.ColumnList, x.ColumnName)
+//			}
+//			indexes = append(indexes, tempIdx)
+//		}
+//		return nil
+//	})
+//	return indexes, err
+//}
 
 // Index table index info
 type Index struct {
@@ -733,20 +733,20 @@ func (m Migrator) GetTypeAliases(databaseTypeName string) []string {
 }
 
 // should reset prepared stmts when table changed
-func (m Migrator) resetPreparedStmts() {
-	if m.DB.PrepareStmt {
-		if pdb, ok := m.DB.ConnPool.(*gorm.PreparedStmtDB); ok {
-			pdb.Reset()
-		}
-	}
-}
+//func (m Migrator) resetPreparedStmts() {
+//	if m.DB.PrepareStmt {
+//		if pdb, ok := m.DB.ConnPool.(*gorm.PreparedStmtDB); ok {
+//			pdb.Reset()
+//		}
+//	}
+//}
 
 func (m Migrator) DropColumn(dst interface{}, field string) error {
 	if err := m.Migrator.DropColumn(dst, field); err != nil {
 		return err
 	}
 
-	m.resetPreparedStmts()
+	//m.resetPreparedStmts()
 	return nil
 }
 
@@ -755,6 +755,6 @@ func (m Migrator) RenameColumn(dst interface{}, oldName, field string) error {
 		return err
 	}
 
-	m.resetPreparedStmts()
+	//m.resetPreparedStmts()
 	return nil
 }

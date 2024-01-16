@@ -1,10 +1,10 @@
 module github.com/stitchcula/OpenGauss
 
-go 1.18
+go 1.17
 
 require (
 	gitee.com/opengauss/openGauss-connector-go-pq v1.0.4
-	gorm.io/gorm v1.25.0
+	gorm.io/gorm v1.23.5
 )
 
 require (
