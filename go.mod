@@ -1,4 +1,4 @@
-module github.com/stitchcula/OpenGauss
+module github.com/jiangliuhong/gorm-driver-opengauss
 
 go 1.17
 
