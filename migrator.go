@@ -243,23 +243,25 @@ func (m Migrator) MigrateColumn(value interface{}, field *schema.Field, columnTy
 	}
 
 	return m.RunWithValue(value, func(stmt *gorm.Statement) error {
-		var description string
-		currentSchema, curTable := m.CurrentSchema(stmt, stmt.Table)
-		values := []interface{}{currentSchema, curTable, field.DBName, stmt.Table, currentSchema}
-		checkSQL := "SELECT description FROM pg_catalog.pg_description "
-		checkSQL += "WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = ? AND table_name = ? AND column_name = ?) "
-		checkSQL += "AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = ? AND relnamespace = "
-		checkSQL += "(SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = ?))"
-		m.DB.Raw(checkSQL, values...).Scan(&description)
+		if field.Comment != "" {
+			var description string
+			currentSchema, curTable := m.CurrentSchema(stmt, stmt.Table)
+			values := []interface{}{currentSchema, curTable, field.DBName, stmt.Table, currentSchema}
+			checkSQL := "SELECT description FROM pg_catalog.pg_description "
+			checkSQL += "WHERE objsubid = (SELECT ordinal_position FROM information_schema.columns WHERE table_schema = ? AND table_name = ? AND column_name = ?) "
+			checkSQL += "AND objoid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = ? AND relnamespace = "
+			checkSQL += "(SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = ?))"
+			m.DB.Raw(checkSQL, values...).Scan(&description)
 
-		comment := strings.Trim(field.Comment, "'")
-		comment = strings.Trim(comment, `"`)
-		if field.Comment != "" && comment != description {
-			if err := m.DB.Exec(
-				"COMMENT ON COLUMN ?.? IS ?",
-				m.CurrentTable(stmt), clause.Column{Name: field.DBName}, gorm.Expr(m.Migrator.Dialector.Explain("$1", field.Comment)),
-			).Error; err != nil {
-				return err
+			comment := strings.Trim(field.Comment, "'")
+			comment = strings.Trim(comment, `"`)
+			if field.Comment != "" && comment != description {
+				if err := m.DB.Exec(
+					"COMMENT ON COLUMN ?.? IS ?",
+					m.CurrentTable(stmt), clause.Column{Name: field.DBName}, gorm.Expr(m.Migrator.Dialector.Explain("$1", field.Comment)),
+				).Error; err != nil {
+					return err
+				}
 			}
 		}
 		return nil
@@ -588,7 +590,10 @@ func (m Migrator) CurrentSchema(stmt *gorm.Statement, table string) (interface{}
 			return strings.TrimPrefix(tables[0], `"`), table
 		}
 	}
-	return clause.Expr{SQL: "CURRENT_SCHEMA()"}, table
+	//return clause.Expr{SQL: "CURRENT_SCHEMA()"}, table
+	var name string
+	m.DB.Raw("SELECT CURRENT_SCHEMA()").Row().Scan(&name)
+	return name, table
 }
 
 func (m Migrator) CreateSequence(tx *gorm.DB, stmt *gorm.Statement, field *schema.Field,
