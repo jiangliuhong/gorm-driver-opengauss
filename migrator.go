@@ -78,10 +78,15 @@ func (m Migrator) HasIndex(value interface{}, name string) bool {
 		if idx := stmt.Schema.LookIndex(name); idx != nil {
 			name = idx.Name
 		}
+		//currentSchema, curTable := m.CurrentSchema(stmt, stmt.Table)
+		//indexName := m.DB.NamingStrategy.IndexName(curTable.(string), name)
+		//return m.DB.Raw(
+		//	"SELECT count(*) FROM pg_indexes WHERE tablename = ? AND indexname = ? AND schemaname = ?", curTable, indexName, currentSchema,
+		//).Scan(&count).Error
+
 		currentSchema, curTable := m.CurrentSchema(stmt, stmt.Table)
-		indexName := m.DB.NamingStrategy.IndexName(curTable.(string), name)
 		return m.DB.Raw(
-			"SELECT count(*) FROM pg_indexes WHERE tablename = ? AND indexname = ? AND schemaname = ?", curTable, indexName, currentSchema,
+			"SELECT count(*) FROM pg_indexes WHERE tablename = ? AND indexname = ? AND schemaname = ?", curTable, name, currentSchema,
 		).Scan(&count).Error
 	})
 
@@ -104,7 +109,8 @@ func (m Migrator) CreateIndex(value interface{}, name string) error {
 				createIndexSQL += "CONCURRENTLY "
 			}
 
-			createIndexSQL += "IF NOT EXISTS ? ON ?"
+			//createIndexSQL += "IF NOT EXISTS ? ON ?"
+			createIndexSQL += " ? ON ?"
 
 			if idx.Type != "" {
 				createIndexSQL += " USING " + idx.Type + "(?)"
