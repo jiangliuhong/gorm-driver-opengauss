@@ -78,16 +78,16 @@ func (m Migrator) HasIndex(value interface{}, name string) bool {
 		if idx := stmt.Schema.LookIndex(name); idx != nil {
 			name = idx.Name
 		}
-		//currentSchema, curTable := m.CurrentSchema(stmt, stmt.Table)
-		//indexName := m.DB.NamingStrategy.IndexName(curTable.(string), name)
-		//return m.DB.Raw(
-		//	"SELECT count(*) FROM pg_indexes WHERE tablename = ? AND indexname = ? AND schemaname = ?", curTable, indexName, currentSchema,
-		//).Scan(&count).Error
-
 		currentSchema, curTable := m.CurrentSchema(stmt, stmt.Table)
+		indexName := m.DB.NamingStrategy.IndexName(curTable.(string), name)
 		return m.DB.Raw(
-			"SELECT count(*) FROM pg_indexes WHERE tablename = ? AND indexname = ? AND schemaname = ?", curTable, name, currentSchema,
+			"SELECT count(*) FROM pg_indexes WHERE tablename = ? AND indexname = ? AND schemaname = ?", curTable, indexName, currentSchema,
 		).Scan(&count).Error
+
+		//currentSchema, curTable := m.CurrentSchema(stmt, stmt.Table)
+		//return m.DB.Raw(
+		//	"SELECT count(*) FROM pg_indexes WHERE tablename = ? AND indexname = ? AND schemaname = ?", curTable, name, currentSchema,
+		//).Scan(&count).Error
 	})
 
 	return count > 0
@@ -97,7 +97,8 @@ func (m Migrator) CreateIndex(value interface{}, name string) error {
 	return m.RunWithValue(value, func(stmt *gorm.Statement) error {
 		if idx := stmt.Schema.LookIndex(name); idx != nil {
 			opts := m.BuildIndexOptions(idx.Fields, stmt)
-			values := []interface{}{clause.Column{Name: idx.Name}, m.CurrentTable(stmt), opts}
+			_, curTable := m.CurrentSchema(stmt, stmt.Table)
+			values := []interface{}{clause.Column{Name: m.Migrator.DB.NamingStrategy.IndexName(curTable.(string), idx.Name)}, m.CurrentTable(stmt), opts}
 
 			createIndexSQL := "CREATE "
 			if idx.Class != "" {

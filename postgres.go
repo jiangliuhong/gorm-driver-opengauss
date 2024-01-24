@@ -106,6 +106,7 @@ func (dialector Dialector) Name() string {
 //var timeZoneMatcher = regexp.MustCompile("(time_zone|TimeZone)=(.*?)($|&| )")
 
 func (dialector Dialector) Initialize(db *gorm.DB) (err error) {
+	db.NamingStrategy = Namer{}
 	// register callbacks
 	//if !dialector.WithoutReturning {
 	callbacks.RegisterDefaultCallbacks(db, &callbacks.Config{
