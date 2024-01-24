@@ -109,11 +109,12 @@ func (dialector Dialector) Initialize(db *gorm.DB) (err error) {
 	db.NamingStrategy = Namer{}
 	// register callbacks
 	//if !dialector.WithoutReturning {
-	callbacks.RegisterDefaultCallbacks(db, &callbacks.Config{
+	callbackConfig := &callbacks.Config{
 		CreateClauses: []string{"INSERT", "VALUES", "ON CONFLICT", "RETURNING"},
 		UpdateClauses: []string{"UPDATE", "SET", "WHERE", "RETURNING"},
 		DeleteClauses: []string{"DELETE", "FROM", "WHERE", "RETURNING"},
-	})
+	}
+	callbacks.RegisterDefaultCallbacks(db, callbackConfig)
 	//}
 
 	//if dialector.Conn != nil {
@@ -149,6 +150,23 @@ func (dialector Dialector) Initialize(db *gorm.DB) (err error) {
 		return err
 	}
 	db.ConnPool = sql.OpenDB(connector)
+
+	// 替换curd 方法，对mysql的语法进行转换
+	//if err = db.Callback().Create().Replace("gorm:create", Create(callbackConfig)); err != nil {
+	//	return
+	//}
+	if err = db.Callback().Query().Replace("gorm:query", Query); err != nil {
+		return err
+	}
+	if err = db.Callback().Row().Replace("gorm:row", RowQuery); err != nil {
+		return err
+	}
+	if err = db.Callback().Update().Replace("gorm:update", Update(callbackConfig)); err != nil {
+		return err
+	}
+	if err = db.Callback().Delete().Replace("gorm:delete", Delete(callbackConfig)); err != nil {
+		return err
+	}
 
 	return
 }
