@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	gitee.com/opengauss/openGauss-connector-go-pq v1.0.4
-	gorm.io/gorm v1.23.5
+	gorm.io/gorm v1.25.7
 )
 
 require (
